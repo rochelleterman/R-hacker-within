@@ -181,6 +181,15 @@ hljs.initHighlightingOnLoad();
 <body>
 <h1>A Demonstration of R</h1>
 
+<p>As researchers, we often want to go through a basic workflow:</p>
+
+<ol>
+<li>Collect data</li>
+<li>Describe or summarize it</li>
+<li>Visualize it</li>
+<li>Analyze it, or test some causal inference. </li>
+</ol>
+
 <h1>Setup environment</h1>
 
 <pre><code class="r"># remove all objects
@@ -479,7 +488,7 @@ names(rt)
 
 <h1>Describing</h1>
 
-<p>First let&#39;s get a quick summary of all variables</p>
+<p>First let&#39;s get a quick summary of all variables.</p>
 
 <pre><code class="r">summary(rt)
 </code></pre>
@@ -566,7 +575,9 @@ names(rt)
 ##  NA&#39;s   :383      NA&#39;s   :174
 </code></pre>
 
-<p>Sometimes we need to do some basic checking for the number of observations or types of observations in our dataset. To do this quickly and easily, table() is our friend. Let&#39;s look at our observations by year and region.</p>
+<p>Sometimes we need to do some basic checking for the number of observations or types of observations in our dataset. To do this quickly and easily, <code>table()</code> is our friend. </p>
+
+<p>Let&#39;s look the number of observations by year and region.</p>
 
 <pre><code class="r">table(rt$year,rt$region)
 </code></pre>
@@ -1120,7 +1131,7 @@ print(glm.table)
 </code></pre>
 
 <pre><code>## % latex table generated in R 3.0.2 by xtable 1.7-4 package
-## % Wed Apr  1 16:14:46 2015
+## % Wed Apr  1 16:20:17 2015
 ## \begin{table}[ht]
 ## \centering
 ## \begin{tabular}{ccccc}

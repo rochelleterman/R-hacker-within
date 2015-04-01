@@ -1,6 +1,13 @@
 A Demonstration of R
 ========================================================
 
+As researchers, we often want to go through a basic workflow:
+
+1. Collect data
+2. Describe or summarize it
+3. Visualize it
+4. Analyze it, or test some causal inference. 
+
 # Setup environment
 
 
@@ -347,7 +354,7 @@ rt$X <- NULL
 
 # Describing
 
-First let's get a quick summary of all variables
+First let's get a quick summary of all variables.
 
 
 ```r
@@ -437,7 +444,9 @@ summary(rt)
 ##  NA's   :383      NA's   :174
 ```
 
-Sometimes we need to do some basic checking for the number of observations or types of observations in our dataset. To do this quickly and easily, table() is our friend. Let's look at our observations by year and region.
+Sometimes we need to do some basic checking for the number of observations or types of observations in our dataset. To do this quickly and easily, `table()` is our friend. 
+
+Let's look the number of observations by year and region.
 
 
 ```r
@@ -1033,7 +1042,7 @@ print(glm.table)
 
 ```
 ## % latex table generated in R 3.0.2 by xtable 1.7-4 package
-## % Wed Apr  1 16:14:46 2015
+## % Wed Apr  1 16:20:17 2015
 ## \begin{table}[ht]
 ## \centering
 ## \begin{tabular}{ccccc}
