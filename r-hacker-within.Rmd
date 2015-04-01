@@ -1,9 +1,5 @@
-Title
+A Demonstration of R
 ========================================================
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring web pages (click the **Help** toolbar button for more details on using R Markdown).
-
-When you click the **Knit HTML** button a web page will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
 # Setup environment
 
@@ -147,7 +143,6 @@ rt$X <- NULL
 
 ```{r}
 library(plyr)
-library(ggplot2)
 library(reshape2)
 
 summary(rt)
@@ -162,6 +157,11 @@ That can get tedious! A better way uses the popular `plyr` package, which uses a
 
 ```{r}
 n.region <- ddply(.data=rt, .variables=.(region), .fun=summarize,"count"=sum(nyt))
+n.region
+```
+Warning! Some functions, like `sum` are sensitive to missing values (NA); you should be sure to specify na.rm=T to avoid errors 
+```{r}
+n.region <- ddply(.data=rt, .variables=.(region), .fun=summarize,"count"=sum(nyt,na.rm=T))
 n.region
 ```
 
@@ -183,30 +183,50 @@ casted
 write.csv(casted,"region_year_counts.csv")
 ```
 
-# visualizing
+# Visualizing
+
+Let's start with R's basic graphics
 
 ```{r fig.width=10, fig.height=6}
+x <- (n.region$count)
+names(x) <- n.region$region
+names(x)
+
+barplot(x)
+```
+
+The most popular and powerful plotting tool is `gglot`
+
+```{r}
+library(ggplot2)
 ggplot(data=n.region.year, aes(x=year,y=count,group=region,color=region)) + geom_line()
 ```
 
 # Testing (causal inference)
-```{r}
 
+Let's start with a fixed effects model using the `plm` package.
+
+```{r}
 library(plm)
-pre.2001 <- rt[rt$year<2002,]
-post.2001 <- rt[rt$year>2002 & rt$year < 2011,]
 panel <- plm.data(rt, c("ccode","year"))
 
 # PLM fixed effects
 plm <- plm(nyt ~ nyt.lagged+polity+autoc+physint+speech+new_empinx+log(gdp.pc.wdi)+pop.wdi+statedept+cinc+domestic9+amnesty.uas,data = panel,model = "within")
 summary(plm)
+```
 
-# GLM pre and post 911
+Now let's use a generalized linear model to compare pre and post 2001.
 
-# pre 911
+```{r}
+#subset pre and post 2001
+pre.2001 <- rt[rt$year<2002,]
+post.2001 <- rt[rt$year>2002 & rt$year < 2011,]
+
+# pre 2001
 glm.pre<-glm(nyt ~ nyt.lagged+polity+autoc+physint+speech+new_empinx+log(gdp.pc.wdi)+pop.wdi+statedept+cinc+domestic9+amnesty.uas+(relevel(region,4)),data = pre.2001, na.action=na.omit) 
 summary(glm.pre)
 
+# post 2001
 glm.post<-glm(nyt ~ nyt.lagged+polity+autoc+physint+speech+new_empinx+log(gdp.pc.wdi)+pop.wdi+statedept+cinc+domestic9+amnesty.uas+(relevel(region,5)),data = post.2001, na.action=na.omit) 
 summary(glm.post)
 ```
