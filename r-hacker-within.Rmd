@@ -14,7 +14,7 @@ setwd(dir="/Users/rterman/Dropbox/berkeley/Programming-resources/R-hacker-within
 
 # Construct a dataset
 
-The first thing we want to do is construct a dataset. This might involve merging  other datasets that we have locally or through an API.
+The first thing we want to do is construct a dataset. This might involve mergingother datasets that we have locally or through an API, package, etc.
 
 First lets load the packages that allow us to import data.
 
@@ -37,8 +37,7 @@ ciri <- read.csv("Data/CIRI/CIRI_1981_2011.csv")
 ciri[1:15,1:10]
 ```
 
-Let's start with the Polity dataset on political regime characteristics
-and transitions. We'll want to subset, and maybe alter some values.
+Let's start with the Polity dataset on political regime characteristics and transitions. We'll want to subset, and maybe alter some values.
 
 ```{r}
 # find column names
@@ -108,7 +107,7 @@ duplicates <- which(duplicated(rt))
 rt <- rt[-duplicates,]
 ```
 
-Let's add more data. The WorldBank has a package that allows you to search and extract data from the World Bank's World Development Indicators API. Let's use it to get the gdp for each country.
+Let's add more data. The WorldBank has a package, `WDI` that allows you to search and extract data from the World Bank's World Development Indicators API. Let's use it to get the gdp for each country.
 
 ```{r}
 # Search World Bank Development Indicators
@@ -131,7 +130,7 @@ summary(rt$gdp.pc.wdi)
 
 We can keep doing this for many datasets until we have a brand-speanking new dataset! 
 
-Fast forward to:
+### Fast forward:
 
 ```{r}
 rt <- read.csv("Data/rt.csv")
@@ -141,13 +140,15 @@ rt$X <- NULL
 
 # Describing
 
-First let's get a quick summary of all variables
+First let's get a quick summary of all variables.
 
 ```{r}
 summary(rt)
 ```
 
-Sometimes we need to do some basic checking for the number of observations or types of observations in our dataset. To do this quickly and easily, table() is our friend. Let's look at our observations by year and region.
+Sometimes we need to do some basic checking for the number of observations or types of observations in our dataset. To do this quickly and easily, `table()` is our friend. 
+
+Let's look the number of observations by year and region.
 
 ```{r}
 table(rt$year,rt$region)

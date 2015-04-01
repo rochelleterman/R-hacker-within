@@ -192,7 +192,7 @@ setwd(dir=&quot;/Users/rterman/Dropbox/berkeley/Programming-resources/R-hacker-w
 
 <h1>Construct a dataset</h1>
 
-<p>The first thing we want to do is construct a dataset. This might involve merging  other datasets that we have locally or through an API.</p>
+<p>The first thing we want to do is construct a dataset. This might involve mergingother datasets that we have locally or through an API, package, etc.</p>
 
 <p>First lets load the packages that allow us to import data.</p>
 
@@ -255,8 +255,7 @@ ciri[1:15,1:10]
 ## 15 15 Afghanistan 1995  101 700    700      4   142       62      NA
 </code></pre>
 
-<p>Let&#39;s start with the Polity dataset on political regime characteristics
-and transitions. We&#39;ll want to subset, and maybe alter some values.</p>
+<p>Let&#39;s start with the Polity dataset on political regime characteristics and transitions. We&#39;ll want to subset, and maybe alter some values.</p>
 
 <pre><code class="r"># find column names
 names(polity)
@@ -395,7 +394,7 @@ duplicates &lt;- which(duplicated(rt))
 rt &lt;- rt[-duplicates,]
 </code></pre>
 
-<p>Let&#39;s add more data. The WorldBank has a package that allows you to search and extract data from the World Bank&#39;s World Development Indicators API. Let&#39;s use it to get the gdp for each country.</p>
+<p>Let&#39;s add more data. The WorldBank has a package, <code>WDI</code> that allows you to search and extract data from the World Bank&#39;s World Development Indicators API. Let&#39;s use it to get the gdp for each country.</p>
 
 <pre><code class="r"># Search World Bank Development Indicators
 WDIsearch(string=&quot;gdp per capita&quot;)
@@ -459,7 +458,7 @@ summary(rt$gdp.pc.wdi)
 
 <p>We can keep doing this for many datasets until we have a brand-speanking new dataset! </p>
 
-<p>Fast forward to:</p>
+<h3>Fast forward:</h3>
 
 <pre><code class="r">rt &lt;- read.csv(&quot;Data/rt.csv&quot;)
 names(rt)
@@ -1121,7 +1120,7 @@ print(glm.table)
 </code></pre>
 
 <pre><code>## % latex table generated in R 3.0.2 by xtable 1.7-4 package
-## % Wed Apr  1 15:10:56 2015
+## % Wed Apr  1 16:14:46 2015
 ## \begin{table}[ht]
 ## \centering
 ## \begin{tabular}{ccccc}

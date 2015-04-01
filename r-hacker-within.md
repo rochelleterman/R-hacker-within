@@ -14,7 +14,7 @@ setwd(dir="/Users/rterman/Dropbox/berkeley/Programming-resources/R-hacker-within
 
 # Construct a dataset
 
-The first thing we want to do is construct a dataset. This might involve merging  other datasets that we have locally or through an API.
+The first thing we want to do is construct a dataset. This might involve mergingother datasets that we have locally or through an API, package, etc.
 
 First lets load the packages that allow us to import data.
 
@@ -84,8 +84,7 @@ ciri[1:15,1:10]
 ## 15 15 Afghanistan 1995  101 700    700      4   142       62      NA
 ```
 
-Let's start with the Polity dataset on political regime characteristics
-and transitions. We'll want to subset, and maybe alter some values.
+Let's start with the Polity dataset on political regime characteristics and transitions. We'll want to subset, and maybe alter some values.
 
 
 ```r
@@ -249,7 +248,7 @@ duplicates <- which(duplicated(rt))
 rt <- rt[-duplicates,]
 ```
 
-Let's add more data. The WorldBank has a package that allows you to search and extract data from the World Bank's World Development Indicators API. Let's use it to get the gdp for each country.
+Let's add more data. The WorldBank has a package, `WDI` that allows you to search and extract data from the World Bank's World Development Indicators API. Let's use it to get the gdp for each country.
 
 
 ```r
@@ -323,7 +322,7 @@ summary(rt$gdp.pc.wdi)
 
 We can keep doing this for many datasets until we have a brand-speanking new dataset! 
 
-Fast forward to:
+### Fast forward:
 
 
 ```r
@@ -1034,7 +1033,7 @@ print(glm.table)
 
 ```
 ## % latex table generated in R 3.0.2 by xtable 1.7-4 package
-## % Wed Apr  1 15:10:56 2015
+## % Wed Apr  1 16:14:46 2015
 ## \begin{table}[ht]
 ## \centering
 ## \begin{tabular}{ccccc}
