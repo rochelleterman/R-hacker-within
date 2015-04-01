@@ -1,11 +1,7 @@
-Title
+A Demonstration of R
 ========================================================
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring web pages (click the **Help** toolbar button for more details on using R Markdown).
-
-When you click the **Knit HTML** button a web page will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-# setup environment
+# Setup environment
 
 
 ```r
@@ -16,7 +12,11 @@ rm(list=ls())
 setwd(dir="/Users/rterman/Dropbox/berkeley/Programming-resources/hacker-within")
 ```
 
-# construct a dataset
+```
+## Error in setwd(dir = "/Users/rterman/Dropbox/berkeley/Programming-resources/hacker-within"): cannot change working directory
+```
+
+# Construct a dataset
 
 The first thing we want to do is construct a dataset. This might involve merging  other datasets that we have locally or through an API.
 
@@ -355,7 +355,6 @@ rt$X <- NULL
 
 ```r
 library(plyr)
-library(ggplot2)
 library(reshape2)
 
 summary(rt)
@@ -443,61 +442,60 @@ summary(rt)
 ##  Max.   :100.00   Max.   :101.000  
 ##  NA's   :383      NA's   :174
 ```
-Let's say we want to look at the number of NYT articles per region per year.
+Let's say we want to look at the number of NYT articles per region.
 
 
 ```r
-sum(rt$nyt[rt$region=="MENA" & rt$year==1980])
+sum(rt$nyt[rt$region=="MENA"],na.rm=T)
 ```
 
 ```
-## [1] 5
+## [1] 1351
 ```
-That can get tedious! A better way uses the popular `plyr` package:
+
+```r
+sum(rt$nyt[rt$region=="LA"],na.rm=T)
+```
+
+```
+## [1] 1286
+```
+That can get tedious! A better way uses the popular `plyr` package, which uses a the ***split-apply-combine*** strategy
 
 
 ```r
-# number of articles per year in the MENA and Latin America regions
-nyt.mena.la <- ddply(.data=rt, .variables=.(year), .fun=summarize,"MENA"=sum(nyt[region=="MENA"]),"Latin America"=sum(nyt[region=="LA"]))
-nyt.mena.la
+n.region <- ddply(.data=rt, .variables=.(region), .fun=summarize,"count"=sum(nyt))
+n.region
 ```
 
 ```
-##    year MENA Latin America
-## 1  1980    5            18
-## 2  1981   15            34
-## 3  1982   12            45
-## 4  1983    9            41
-## 5  1984   13            68
-## 6  1985   13            55
-## 7  1986   16            52
-## 8  1987   15            47
-## 9  1988   18            43
-## 10 1989   25            47
-## 11 1990   28            39
-## 12 1991   24            34
-## 13 1992   37            26
-## 14 1993   18            47
-## 15 1994   20            45
-## 16 1995   25            43
-## 17 1996   20            41
-## 18 1997   30            27
-## 19 1998   26            47
-## 20 1999   22            38
-## 21 2000   24            85
-## 22 2001   39            51
-## 23 2002   38            52
-## 24 2003   88            64
-## 25 2004  227            48
-## 26 2005  126            41
-## 27 2006  182            33
-## 28 2007   98            22
-## 29 2008   43            20
-## 30 2009   62            15
-## 31 2010   33            18
-## 32 2011   NA            NA
-## 33 2012   NA            NA
+##   region count
+## 1 Africa    NA
+## 2   Asia    NA
+## 3   EECA    NA
+## 4     LA    NA
+## 5   MENA    NA
+## 6   West    NA
 ```
+Warning! Some functions, like `sum` are sensitive to missing values (NA); you should be sure to specify na.rm=T to avoid errors 
+
+```r
+n.region <- ddply(.data=rt, .variables=.(region), .fun=summarize,"count"=sum(nyt,na.rm=T))
+n.region
+```
+
+```
+##   region count
+## 1 Africa   619
+## 2   Asia   994
+## 3   EECA   921
+## 4     LA  1286
+## 5   MENA  1351
+## 6   West   433
+```
+
+We can also split by multiple variables:
+
 
 ```r
 # number of articles per year in each region
@@ -706,7 +704,6 @@ n.region.year
 ## 197 2012   MENA    NA
 ## 198 2012   West    NA
 ```
-Warning! Some functions like `sum` are sensitive to missing values (NA); you should be sure to specify na.rm=T to avoid errors
 
 Let's make a new matrix with rows = year, cols = regions, and cells = count of nyt articles. We can use the `reshape` package for this:
 
@@ -758,10 +755,32 @@ casted
 write.csv(casted,"region_year_counts.csv")
 ```
 
-# visualizing
+# Visualizing
+
+Let's start with R's basic graphics
 
 
 ```r
+x <- (n.region$count)
+names(x) <- n.region$region
+names(x)
+```
+
+```
+## [1] "Africa" "Asia"   "EECA"   "LA"     "MENA"   "West"
+```
+
+```r
+barplot(x)
+```
+
+![plot of chunk unnamed-chunk-16](figure/unnamed-chunk-16-1.png) 
+
+The most popular and powerful plotting tool is `gglot`
+
+
+```r
+library(ggplot2)
 ggplot(data=n.region.year, aes(x=year,y=count,group=region,color=region)) + geom_line()
 ```
 
@@ -769,9 +788,12 @@ ggplot(data=n.region.year, aes(x=year,y=count,group=region,color=region)) + geom
 ## Warning: Removed 12 rows containing missing values (geom_path).
 ```
 
-![plot of chunk unnamed-chunk-14](figure/unnamed-chunk-14-1.png) 
+![plot of chunk unnamed-chunk-17](figure/unnamed-chunk-17-1.png) 
 
-# testing (causal inference)
+# Testing (causal inference)
+
+Let's start with a fixed effects model using the `plm` package.
+
 
 ```r
 library(plm)
@@ -782,8 +804,6 @@ library(plm)
 ```
 
 ```r
-pre.2001 <- rt[rt$year<2002,]
-post.2001 <- rt[rt$year>2002 & rt$year < 2011,]
 panel <- plm.data(rt, c("ccode","year"))
 
 # PLM fixed effects
@@ -829,10 +849,15 @@ summary(plm)
 ## F-statistic: 72.5009 on 12 and 2814 DF, p-value: < 2.22e-16
 ```
 
-```r
-# GLM pre and post 911
+Now let's use a generalized linear model to compare pre and post 2001.
 
-# pre 911
+
+```r
+#subset pre and post 2001
+pre.2001 <- rt[rt$year<2002,]
+post.2001 <- rt[rt$year>2002 & rt$year < 2011,]
+
+# pre 2001
 glm.pre<-glm(nyt ~ nyt.lagged+polity+autoc+physint+speech+new_empinx+log(gdp.pc.wdi)+pop.wdi+statedept+cinc+domestic9+amnesty.uas+(relevel(region,4)),data = pre.2001, na.action=na.omit) 
 summary(glm.pre)
 ```
@@ -883,6 +908,7 @@ summary(glm.pre)
 ```
 
 ```r
+# post 2001
 glm.post<-glm(nyt ~ nyt.lagged+polity+autoc+physint+speech+new_empinx+log(gdp.pc.wdi)+pop.wdi+statedept+cinc+domestic9+amnesty.uas+(relevel(region,5)),data = post.2001, na.action=na.omit) 
 summary(glm.post)
 ```
@@ -944,7 +970,7 @@ print(glm.table)
 
 ```
 ## % latex table generated in R 3.0.2 by xtable 1.7-4 package
-## % Wed Apr  1 13:18:20 2015
+## % Wed Apr  1 14:15:57 2015
 ## \begin{table}[ht]
 ## \centering
 ## \begin{tabular}{ccccc}

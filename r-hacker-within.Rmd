@@ -197,7 +197,7 @@ barplot(x)
 
 The most popular and powerful plotting tool is `gglot`
 
-```{r}
+```{r fig.width=10, fig.height=6}
 library(ggplot2)
 ggplot(data=n.region.year, aes(x=year,y=count,group=region,color=region)) + geom_line()
 ```
