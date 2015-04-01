@@ -9,11 +9,7 @@ A Demonstration of R
 rm(list=ls())
 
 # set wd
-setwd(dir="/Users/rterman/Dropbox/berkeley/Programming-resources/hacker-within")
-```
-
-```
-## Error in setwd(dir = "/Users/rterman/Dropbox/berkeley/Programming-resources/hacker-within"): cannot change working directory
+setwd(dir="/Users/rterman/Dropbox/berkeley/Programming-resources/R-hacker-within")
 ```
 
 # Construct a dataset
@@ -352,11 +348,10 @@ rt$X <- NULL
 
 # Describing
 
+First let's get a quick summary of all variables
+
 
 ```r
-library(plyr)
-library(reshape2)
-
 summary(rt)
 ```
 
@@ -442,6 +437,73 @@ summary(rt)
 ##  Max.   :100.00   Max.   :101.000  
 ##  NA's   :383      NA's   :174
 ```
+
+Sometimes we need to do some basic checking for the number of observations or types of observations in our dataset. To do this quickly and easily, table() is our friend. Let's look at our observations by year and region.
+
+
+```r
+table(rt$year,rt$region)
+```
+
+```
+##       
+##        Africa Asia EECA LA MENA West
+##   1980     43   22   11 26   22   19
+##   1981     43   22   11 26   22   19
+##   1982     43   22   11 26   22   19
+##   1983     43   22   11 26   22   19
+##   1984     43   22   11 26   22   19
+##   1985     43   22   11 26   22   19
+##   1986     43   22   11 26   22   19
+##   1987     43   22   11 26   22   19
+##   1988     43   22   11 26   22   19
+##   1989     43   22   11 26   22   19
+##   1990     44   22   11 26   23   20
+##   1991     44   22   25 26   21   22
+##   1992     44   22   25 26   21   22
+##   1993     46   22   26 26   21   22
+##   1994     45   22   26 26   21   22
+##   1995     45   22   26 26   21   22
+##   1996     45   22   26 26   21   22
+##   1997     45   22   26 26   21   22
+##   1998     45   22   26 26   21   22
+##   1999     45   22   26 26   21   22
+##   2000     45   22   26 26   21   22
+##   2001     45   22   26 26   21   22
+##   2002     45   23   26 26   21   22
+##   2003     45   23   26 26   21   22
+##   2004     45   23   26 26   21   22
+##   2005     45   23   26 26   21   22
+##   2006     45   23   28 26   21   22
+##   2007     45   23   27 26   21   22
+##   2008     45   23   28 26   21   22
+##   2009     45   23   28 26   21   22
+##   2010     45   23   28 26   21   22
+##   2011     45   23   28 26   22   22
+##   2012     45   23   28 26   21   22
+```
+
+You may need to discretize a categorical variable, e.g., by GDP:
+
+
+```r
+rt$democ[rt$democ<0] <- NA
+summary(rt$gdp.pc.wdi)
+```
+
+```
+##      Min.   1st Qu.    Median      Mean   3rd Qu.      Max.      NA's 
+##     64.81    534.90   1717.00   6995.00   6785.00 113700.00       359
+```
+
+```r
+x <- cut(rt$gdp.pc.wdi, breaks =c(0,100,500,1000,5000,10000,500000))
+levels(x) <- c("0-100","100-500","500-1000","1000-5000","5000-10000","10000+")
+boxplot(democ ~ x, data = rt,plot=TRUE)
+```
+
+![plot of chunk unnamed-chunk-13](figure/unnamed-chunk-13-1.png) 
+
 Let's say we want to look at the number of NYT articles per region.
 
 
@@ -464,6 +526,7 @@ That can get tedious! A better way uses the popular `plyr` package, which uses a
 
 
 ```r
+library(plyr)
 n.region <- ddply(.data=rt, .variables=.(region), .fun=summarize,"count"=sum(nyt))
 n.region
 ```
@@ -709,6 +772,7 @@ Let's make a new matrix with rows = year, cols = regions, and cells = count of n
 
 
 ```r
+library(reshape2)
 casted <- dcast(data = n.region.year, formula = year ~ region, value.var = "count")
 casted
 ```
@@ -774,7 +838,7 @@ names(x)
 barplot(x)
 ```
 
-![plot of chunk unnamed-chunk-16](figure/unnamed-chunk-16-1.png) 
+![plot of chunk unnamed-chunk-18](figure/unnamed-chunk-18-1.png) 
 
 The most popular and powerful plotting tool is `gglot`
 
@@ -788,7 +852,7 @@ ggplot(data=n.region.year, aes(x=year,y=count,group=region,color=region)) + geom
 ## Warning: Removed 12 rows containing missing values (geom_path).
 ```
 
-![plot of chunk unnamed-chunk-17](figure/unnamed-chunk-17-1.png) 
+![plot of chunk unnamed-chunk-19](figure/unnamed-chunk-19-1.png) 
 
 # Testing (causal inference)
 
@@ -970,7 +1034,7 @@ print(glm.table)
 
 ```
 ## % latex table generated in R 3.0.2 by xtable 1.7-4 package
-## % Wed Apr  1 14:15:57 2015
+## % Wed Apr  1 15:10:56 2015
 ## \begin{table}[ht]
 ## \centering
 ## \begin{tabular}{ccccc}
