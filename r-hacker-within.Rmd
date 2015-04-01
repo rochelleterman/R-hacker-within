@@ -1,0 +1,221 @@
+Title
+========================================================
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring web pages (click the **Help** toolbar button for more details on using R Markdown).
+
+When you click the **Knit HTML** button a web page will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+# Setup environment
+
+```{r}
+# remove all objects
+rm(list=ls())
+
+# set wd
+setwd(dir="/Users/rterman/Dropbox/berkeley/Programming-resources/hacker-within")
+
+```
+
+# Construct a dataset
+
+The first thing we want to do is construct a dataset. This might involve merging  other datasets that we have locally or through an API.
+
+First lets load the packages that allow us to import data.
+
+```{r}
+# load data from .csv format using foreign:
+library("foreign")
+
+# find country codes using the country code package.
+library("countrycode")
+
+# use the World Bank Development Indicator dataset using its API:
+library("WDI")
+```
+
+The first thing we want to do is load some of the data we want to work with.
+```{r}
+polity <- read.csv("Data/Polity/p4v2013.csv")
+polity[1:15,1:10]
+ciri <- read.csv("Data/CIRI/CIRI_1981_2011.csv")
+ciri[1:15,1:10]
+```
+
+Let's start with the Polity dataset on political regime characteristics
+and transitions. We'll want to subset, and maybe alter some values.
+
+```{r}
+# find column names
+names(polity)
+
+# subset the data
+rt <- subset(polity, year>1979 & year < 2013,select=c(ccode,scode,country,year,polity,polity2,democ,autoc))
+
+# take a look
+rt[1:15,]
+
+# give a summary of a column
+summary(rt$polity)
+
+# apply NA values
+rt$polity[rt$polity < -10] <- NA
+summary(rt$polity)
+
+# delete records
+rt <- rt[-which(rt$country=="Sudan-North"),]
+```
+
+Some packages are available that offer data. For instance, the `countrycode` package offers a database of various codes used to identify countries -- e.g. from the UN, WorldBank, etc. It does this through a function. We can add new variables by passing other variables into this function.
+
+```{r}
+# worldbank
+rt$worldbank <- countrycode(rt$ccode,"cown","wb") #worldbank
+
+# iso2c 
+rt$iso2c <- countrycode(rt$worldbank,"wb","iso2c") #iso2c
+
+# find NAs
+unique(rt$country[is.na(rt$worldbank)])
+
+# assign codes
+rt$worldbank[rt$country=="Germany West"] <- "DE"
+
+```
+
+Let's say we want to quickly reorder our columns:
+
+```{r}
+##### Re-Order Columns
+names(rt)
+rt <- rt[,c(4,3,1,2,9,10,5,6,7,8)]
+names(rt)
+```
+
+Now we that we have these codes to serve as identifiers, we can merge our dataset with another dataset that uses the same codes. Let's do the popular CIRI dataset on political violence.
+
+```{r}
+names(ciri)
+ciri$X <- NULL
+names(ciri)
+
+# subset
+ciri.subset <- subset(ciri, YEAR > 1979 & YEAR < 2013, select=c(YEAR,COW,UNREG,PHYSINT,SPEECH,NEW_EMPINX,WECON,WOPOL,WOSOC,ELECSD))
+
+# rename
+names(ciri.subset) <- c("year","ccode","unreg","physint","speech","new_empinx","wecon","wopol","wosoc","elecsd")
+
+# merge
+rt <- merge(rt,ciri.subset,by=c("year","ccode"),all.x=TRUE,incomparables=NA)
+
+# delete duplicates
+duplicates <- which(duplicated(rt))
+rt <- rt[-duplicates,]
+```
+
+Let's add more data. The WorldBank has a package that allows you to search and extract data from the World Bank's World Development Indicators API. Let's use it to get the gdp for each country.
+
+```{r}
+# Search World Bank Development Indicators
+WDIsearch(string="gdp per capita")
+
+# Download data
+wdi.gdp <- WDI(country = "all", indicator = c("NY.GDP.PCAP.CD"), start = 1980, end = 2012) #download data
+names(wdi.gdp) # GDP per capita (current US$)
+```
+
+Now let's merge.
+
+```{r}
+names(wdi.gdp) # GDP per capita (current US$)
+wdi.gdp$country <- NULL
+rt <- merge(rt,wdi.gdp,by=c("year","iso2c"),all.x=TRUE,incomparables=NA)
+names(rt)[19] <- "gdp.pc.wdi"
+summary(rt$gdp.pc.wdi)
+```
+
+We can keep doing this for many datasets until we have a brand-speanking new dataset! 
+
+Fast forward to:
+
+```{r}
+rt <- read.csv("Data/rt.csv")
+names(rt)
+rt$X <- NULL
+```
+
+# Describing
+
+```{r}
+library(plyr)
+library(ggplot2)
+library(reshape2)
+
+summary(rt)
+```
+Let's say we want to look at the number of NYT articles per region.
+
+```{r}
+sum(rt$nyt[rt$region=="MENA"],na.rm=T)
+sum(rt$nyt[rt$region=="LA"],na.rm=T)
+```
+That can get tedious! A better way uses the popular `plyr` package, which uses a the ***split-apply-combine*** strategy
+
+```{r}
+n.region <- ddply(.data=rt, .variables=.(region), .fun=summarize,"count"=sum(nyt))
+n.region
+```
+
+We can also split by multiple variables:
+
+```{r]}
+# number of articles per year in each region
+n.region.year <- ddply(.data=rt, .variables=.(year,region), .fun=summarize,"count"=sum(nyt))
+n.region.year
+```
+
+Let's make a new matrix with rows = year, cols = regions, and cells = count of nyt articles. We can use the `reshape` package for this:
+
+```{r}
+casted <- dcast(data = n.region.year, formula = year ~ region, value.var = "count")
+casted
+
+# write to csv
+write.csv(casted,"region_year_counts.csv")
+```
+
+# visualizing
+
+```{r fig.width=10, fig.height=6}
+ggplot(data=n.region.year, aes(x=year,y=count,group=region,color=region)) + geom_line()
+```
+
+# Testing (causal inference)
+```{r}
+
+library(plm)
+pre.2001 <- rt[rt$year<2002,]
+post.2001 <- rt[rt$year>2002 & rt$year < 2011,]
+panel <- plm.data(rt, c("ccode","year"))
+
+# PLM fixed effects
+plm <- plm(nyt ~ nyt.lagged+polity+autoc+physint+speech+new_empinx+log(gdp.pc.wdi)+pop.wdi+statedept+cinc+domestic9+amnesty.uas,data = panel,model = "within")
+summary(plm)
+
+# GLM pre and post 911
+
+# pre 911
+glm.pre<-glm(nyt ~ nyt.lagged+polity+autoc+physint+speech+new_empinx+log(gdp.pc.wdi)+pop.wdi+statedept+cinc+domestic9+amnesty.uas+(relevel(region,4)),data = pre.2001, na.action=na.omit) 
+summary(glm.pre)
+
+glm.post<-glm(nyt ~ nyt.lagged+polity+autoc+physint+speech+new_empinx+log(gdp.pc.wdi)+pop.wdi+statedept+cinc+domestic9+amnesty.uas+(relevel(region,5)),data = post.2001, na.action=na.omit) 
+summary(glm.post)
+```
+
+Put it in a format you can input into LaTex
+
+```{r}
+# create xtable
+library(xtable)
+glm.table <- xtable(summary(glm.post),caption="Determinants of Media Coverage,2002-2010", align="ccccc")
+print(glm.table)
+```
