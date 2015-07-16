@@ -132,7 +132,7 @@ names(rt)[19] <- "gdp.pc.wdi"
 summary(rt$gdp.pc.wdi)
 ```
 
-We can keep doing this for many datasets until we have a brand-speanking new dataset! 
+We can keep doing this for many datasets until we have a brand-spanking new dataset! 
 
 ### Fast forward:
 
