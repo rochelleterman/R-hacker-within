@@ -21,14 +21,11 @@ setwd(dir="/Users/rterman/Dropbox/berkeley/Programming-resources/R-hacker-within
 
 # Construct a dataset
 
-The first thing we want to do is construct a dataset. This might involve mergingother datasets that we have locally or through an API, package, etc.
+The first thing we want to do is construct a dataset. This might involve merging other datasets that we have locally or through an API, package, etc.
 
 First lets load the packages that allow us to import data.
 
 ```{r}
-# load data from .csv format using foreign:
-library("foreign")
-
 # find country codes using the country code package.
 library("countrycode")
 
